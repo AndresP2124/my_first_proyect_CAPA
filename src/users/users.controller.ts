@@ -7,13 +7,23 @@ import {
   Param,
   Delete,
   ParseIntPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @ApiTags('users')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
@@ -22,7 +32,7 @@ export class UsersController {
   @ApiOperation({ summary: 'Crear un nuevo usuario' })
   @ApiResponse({ status: 201, description: 'Usuario creado exitosamente.' })
   @ApiResponse({ status: 400, description: 'Datos de entrada inválidos.' })
-  @ApiResponse({ status: 409, description: 'El correo electrónico ya existe.' })
+  @ApiResponse({ status: 401, description: 'No autorizado (falta token).' })
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
   }
@@ -30,6 +40,7 @@ export class UsersController {
   @Get()
   @ApiOperation({ summary: 'Obtener la lista de todos los usuarios' })
   @ApiResponse({ status: 200, description: 'Lista de usuarios obtenida.' })
+  @ApiResponse({ status: 401, description: 'No autorizado (falta token).' })
   findAll() {
     return this.usersService.findAll();
   }
@@ -38,6 +49,7 @@ export class UsersController {
   @ApiOperation({ summary: 'Obtener un usuario por su ID' })
   @ApiParam({ name: 'id', description: 'ID numérico del usuario', example: 1 })
   @ApiResponse({ status: 200, description: 'Usuario encontrado.' })
+  @ApiResponse({ status: 401, description: 'No autorizado (falta token).' })
   @ApiResponse({ status: 404, description: 'Usuario no encontrado.' })
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.usersService.findOne(id);
@@ -47,7 +59,7 @@ export class UsersController {
   @ApiOperation({ summary: 'Actualizar los datos de un usuario' })
   @ApiParam({ name: 'id', description: 'ID numérico del usuario', example: 1 })
   @ApiResponse({ status: 200, description: 'Usuario actualizado con éxito.' })
-  @ApiResponse({ status: 404, description: 'Usuario no encontrado.' })
+  @ApiResponse({ status: 401, description: 'No autorizado (falta token).' })
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateUserDto: UpdateUserDto,
@@ -59,7 +71,7 @@ export class UsersController {
   @ApiOperation({ summary: 'Eliminar un usuario por su ID' })
   @ApiParam({ name: 'id', description: 'ID numérico del usuario', example: 1 })
   @ApiResponse({ status: 200, description: 'Usuario eliminado con éxito.' })
-  @ApiResponse({ status: 404, description: 'Usuario no encontrado.' })
+  @ApiResponse({ status: 401, description: 'No autorizado (falta token).' })
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.usersService.remove(id);
   }
